@@ -53,14 +53,15 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     const int max_response_size = 262144;
     char response[max_response_size];
 
-    int response_length = strlen(body);
+    int response_length;
+    time_t dt = time(NULL);
 
     // Build HTTP response and store it in response
 
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
-    sprintf(response, "%s\nContent-Type: %s\nContent-Length: %d\nConnection: close\n\n%s", header, response_length, content_type, body);
+    response_length = sprintf(response, "%s\nDate: %sContent-Type: %s\nContent-Length: %d\nConnection: close\n\n%s", header, asctime(localtime(&dt)), content_type, content_length, body);
 
     // Send it all!
     int rv = send(fd, response, response_length, 0);
@@ -148,13 +149,16 @@ void handle_http_request(int fd, struct cache *cache)
     const int request_buffer_size = 65536; // 64K
     char request[request_buffer_size];
 
+    resp_404(fd); // for testing only; should be removed later
     // Read request
     int bytes_recvd = recv(fd, request, request_buffer_size - 1, 0);
 
     if (bytes_recvd < 0) {
+        printf("OUR ERROR\n");
         perror("recv");
         return;
     }
+
 
 
     ///////////////////
@@ -185,6 +189,8 @@ int main(void)
 
     // Get a listening socket
     int listenfd = get_listener_socket(PORT);
+
+    // resp_404(listenfd);
 
     if (listenfd < 0) {
         fprintf(stderr, "webserver: fatal error getting listening socket\n");
