@@ -84,12 +84,20 @@ void get_d20(int fd)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    char randNum[10];
+    srand((time(NULL)));
+    unsigned char randInt = (rand() % 20) + 1;
+
+    // snprintf(filepath, sizeof filepath, "%s/404.html", SERVER_FILES);
+    snprintf(randNum, sizeof(randNum), "%d", randInt);
 
     // Use send_response() to send it back as text/plain data
 
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    // printf("%d\n", randInt);
+    send_response(fd, "HTTP/1.1 200 OK", "text/plain", randNum, strlen(randNum));
 }
 
 /**
@@ -172,13 +180,14 @@ void handle_http_request(int fd, struct cache *cache)
  
     // If GET, handle the get endpoints
     sscanf(request, "%s %s", method, path);
-    printf("%s %s\n", method, path);
+    // printf("sscanf results: %s %s\n", method, path);
 
     //    Check if it's /d20 and handle that special case
     if (strcmp(path, "/d20") == 0) {
-        printf("D20\n");
+        printf("Run: D20\n");
+        get_d20(fd);
     } else {
-        printf("DEFAULT\n");
+        printf("Run: DEFAULT(404)\n");
         resp_404(fd);
     }
     //    Otherwise serve the requested file by calling get_file()
