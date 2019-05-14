@@ -148,13 +148,13 @@ void get_file(int fd, struct cache *cache, char *request_path)
         fprintf(stderr, "cannot find requested file path\n");
         resp_404(fd);
         // exit(3);
+        // file_free(filedata);
+    } else {
+        mime_type = mime_type_get(filepath);
+        send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
+        file_free(filedata);
     }
 
-    mime_type = mime_type_get(filepath);
-
-    send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
-
-    file_free(filedata);
 }
 
 /**
@@ -204,14 +204,21 @@ void handle_http_request(int fd, struct cache *cache)
     // printf("sscanf results: %s %s\n", method, path);
 
     //    Check if it's /d20 and handle that special case
-    if (strcmp(path, "/d20") == 0) {
-        printf("Run: D20\n");
-        get_d20(fd);
-    } else if (strcmp(path, "/") != 0) {
-        get_file(fd, cache, path);
+    if (strcmp(method, "GET") == 0) {
+        if (strcmp(path, "/d20") == 0) {
+            printf("Run: D20\n");
+            get_d20(fd);
+        } else if (strcmp(path, "/") != 0) {
+            printf("Run: Requested Path\n");
+            get_file(fd, cache, path);
+        } else {
+            printf("Run: DEFAULT(404)\n");
+            resp_404(fd);
+        }
+    } else if (strcmp(method, "POST") == 0) {
+        printf("THIS WILL POST\n");
     } else {
-        printf("Run: DEFAULT(404)\n");
-        resp_404(fd);
+        printf("WHAT IS IT WE WANT TO DO\n");
     }
     //    Otherwise serve the requested file by calling get_file()
 
