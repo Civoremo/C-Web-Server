@@ -61,7 +61,10 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
-    response_length = sprintf(response, "%s\nDate: %sContent-Type: %s\nContent-Length: %d\nConnection: close\n\n%s", header, asctime(localtime(&dt)), content_type, content_length, body);
+    response_length = sprintf(response, "%s\nDate: %sContent-Type: %s\nContent-Length: %d\nConnection: close\n\n", header, asctime(localtime(&dt)), content_type, content_length);
+
+    memcpy(response + response_length, body, content_length);
+    response_length += content_length;
 
     // Send it all!
     int rv = send(fd, response, response_length, 0);
@@ -86,7 +89,7 @@ void get_d20(int fd)
     ///////////////////
     char randNum[10];
     srand((time(NULL)));
-    unsigned char randInt = (rand() % 20) + 1;
+    unsigned int randInt = (rand() % 20) + 1;
 
     // snprintf(filepath, sizeof filepath, "%s/404.html", SERVER_FILES);
     snprintf(randNum, sizeof(randNum), "%d", randInt);
@@ -134,6 +137,24 @@ void get_file(int fd, struct cache *cache, char *request_path)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    char filepath[4096];
+    struct file_data *filedata;
+    char *mime_type;
+
+    snprintf(filepath, sizeof filepath, "%s/%s", SERVER_ROOT, request_path);
+    filedata = file_load(filepath);
+
+    if (filedata == NULL) {
+        fprintf(stderr, "cannot find requested file path\n");
+        resp_404(fd);
+        // exit(3);
+    }
+
+    mime_type = mime_type_get(filepath);
+
+    send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
+
+    file_free(filedata);
 }
 
 /**
@@ -177,7 +198,7 @@ void handle_http_request(int fd, struct cache *cache)
     ///////////////////
 
     // Read the first two components of the first line of the request 
- 
+    // printf("%s\n", request);
     // If GET, handle the get endpoints
     sscanf(request, "%s %s", method, path);
     // printf("sscanf results: %s %s\n", method, path);
@@ -186,6 +207,8 @@ void handle_http_request(int fd, struct cache *cache)
     if (strcmp(path, "/d20") == 0) {
         printf("Run: D20\n");
         get_d20(fd);
+    } else if (strcmp(path, "/") != 0) {
+        get_file(fd, cache, path);
     } else {
         printf("Run: DEFAULT(404)\n");
         resp_404(fd);
