@@ -111,7 +111,8 @@ struct cache *cache_create(int max_size, int hashsize)
     ///////////////////
     printf("CREATE CACHE\n");
     struct cache *c = malloc(sizeof(struct cache));
-    struct hashtable *ht = malloc(sizeof(hashsize));
+
+    struct hashtable *ht = hashtable_create(128, NULL);
 
     c->max_size = max_size;
     c->cur_size = 0;
@@ -166,7 +167,10 @@ void cache_put(struct cache *cache, char *path, char *content_type, void *conten
         struct cache_entry *tail = dllist_remove_tail(cache);
         hashtable_delete(cache->index, tail->path);
         free_entry(tail);
-        cache->cur_size--;        
+
+        if (cache->cur_size > cache->max_size) {
+            cache->cur_size--;        
+        }
     }
 }
 
