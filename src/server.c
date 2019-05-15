@@ -92,7 +92,8 @@ void get_d20(int fd)
     unsigned int randInt = (rand() % 20) + 1;
 
     // snprintf(filepath, sizeof filepath, "%s/404.html", SERVER_FILES);
-    snprintf(randNum, sizeof(randNum), "%d", randInt);
+    // snprintf(randNum, sizeof(randNum), "%d", randInt);
+    sprintf(randNum, "%d", randInt);
 
     // Use send_response() to send it back as text/plain data
 
@@ -141,19 +142,25 @@ void get_file(int fd, struct cache *cache, char *request_path)
     struct file_data *filedata;
     char *mime_type;
 
-    snprintf(filepath, sizeof filepath, "%s/%s", SERVER_ROOT, request_path);
-    filedata = file_load(filepath);
+    // struct cache_entry *entry = cache_get(cache, request_path);
 
-    if (filedata == NULL) {
-        fprintf(stderr, "cannot find requested file path\n");
-        resp_404(fd);
-        // exit(3);
-        // file_free(filedata);
-    } else {
-        mime_type = mime_type_get(filepath);
-        send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
-        file_free(filedata);
-    }
+    // if (cache_get(cache, request_path) == NULL) {
+
+        snprintf(filepath, sizeof filepath, "%s/%s", SERVER_ROOT, request_path);
+        filedata = file_load(filepath);
+
+        if (filedata == NULL) {
+            fprintf(stderr, "cannot find requested file path\n");
+            resp_404(fd);
+            // file_free(filedata);
+        } else {
+            mime_type = mime_type_get(filepath);
+            send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
+            file_free(filedata);
+        }
+    // } else {
+    //     printf("WE NEED SOMETHING\n");
+    // }
 
 }
 

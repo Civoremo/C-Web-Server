@@ -12,6 +12,15 @@ struct cache_entry *alloc_entry(char *path, char *content_type, void *content, i
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    printf("ALLOC ENTRY: %s\n", path);
+    struct cache_entry *ce = malloc(sizeof (struct cache_entry));
+
+    ce->path = path;
+    ce->content_length = content_length;
+    ce->content_type = content_type;
+    ce->content = content;
+
+    return ce;
 }
 
 /**
@@ -22,6 +31,11 @@ void free_entry(struct cache_entry *entry)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    // free(entry->path);
+    // free(entry->content);
+    // free(entry->content_length);
+    // free(entry->content_type);
+    free(entry);
 }
 
 /**
@@ -29,6 +43,7 @@ void free_entry(struct cache_entry *entry)
  */
 void dllist_insert_head(struct cache *cache, struct cache_entry *ce)
 {
+    printf("dllist insert\n");
     // Insert at the head of the list
     if (cache->head == NULL) {
         cache->head = cache->tail = ce;
@@ -94,6 +109,18 @@ struct cache *cache_create(int max_size, int hashsize)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    printf("CREATE CACHE\n");
+    struct cache *c = malloc(sizeof(struct cache));
+    struct hashtable *ht = malloc(sizeof(hashsize));
+
+    c->max_size = max_size;
+    c->cur_size = 0;
+    c->index = ht;
+    c->head = NULL;
+    c->tail = NULL;
+    printf("assigned values\n");
+
+    return c;
 }
 
 void cache_free(struct cache *cache)
@@ -125,6 +152,22 @@ void cache_put(struct cache *cache, char *path, char *content_type, void *conten
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    printf("PUT ENTRY\n");
+    struct cache_entry *new_entry;
+    new_entry = alloc_entry(path, content_type, content, content_length);
+    printf("%s %s %s %d\n", path, content_type, content, content_length);
+
+    dllist_insert_head(cache, new_entry);
+    hashtable_put(cache->index, path, new_entry);
+    cache->cur_size++;
+
+    if (cache->cur_size > cache->max_size) {
+        printf("REMOVING FROM TAIL\n");
+        struct cache_entry *tail = dllist_remove_tail(cache);
+        hashtable_delete(cache->index, tail->path);
+        free_entry(tail);
+        cache->cur_size--;        
+    }
 }
 
 /**
@@ -135,4 +178,14 @@ struct cache_entry *cache_get(struct cache *cache, char *path)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    printf("GET CACHE\n");
+    struct cache_entry *entry = hashtable_get(cache->index, path);
+    printf("%p\n", entry);
+    if (entry == NULL) {
+        // free_entry(entry);
+        return NULL;
+    }
+
+    dllist_move_to_head(cache, entry);
+    return entry;
 }
