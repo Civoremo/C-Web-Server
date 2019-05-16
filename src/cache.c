@@ -13,12 +13,15 @@ struct cache_entry *alloc_entry(char *path, char *content_type, void *content, i
     // IMPLEMENT ME! //
     ///////////////////
     printf("ALLOC ENTRY: %s\n", path);
+    printf("ENTRY: \n%s\n", content);
     struct cache_entry *ce = malloc(sizeof (struct cache_entry));
 
     ce->path = path;
     ce->content_length = content_length;
     ce->content_type = content_type;
     ce->content = content;
+    ce->next = NULL;
+    ce->prev = NULL;
 
     return ce;
 }
@@ -43,7 +46,7 @@ void free_entry(struct cache_entry *entry)
  */
 void dllist_insert_head(struct cache *cache, struct cache_entry *ce)
 {
-    printf("dllist insert\n");
+    // printf("dllist insert\n");
     // Insert at the head of the list
     if (cache->head == NULL) {
         cache->head = cache->tail = ce;
@@ -112,14 +115,14 @@ struct cache *cache_create(int max_size, int hashsize)
     printf("CREATE CACHE\n");
     struct cache *c = malloc(sizeof(struct cache));
 
-    struct hashtable *ht = hashtable_create(128, NULL);
+    struct hashtable *ht = hashtable_create(hashsize, NULL);
 
     c->max_size = max_size;
     c->cur_size = 0;
     c->index = ht;
     c->head = NULL;
     c->tail = NULL;
-    printf("assigned values\n");
+    // printf("assigned values\n");
 
     return c;
 }
@@ -156,17 +159,17 @@ void cache_put(struct cache *cache, char *path, char *content_type, void *conten
     printf("PUT ENTRY\n");
     struct cache_entry *new_entry;
     new_entry = alloc_entry(path, content_type, content, content_length);
-    printf("%s %s %s %d\n", path, content_type, content, content_length);
+    printf("PUT:\n%s\n %s\n %s\n %d\n", path, content_type, content, content_length);
 
     dllist_insert_head(cache, new_entry);
-    hashtable_put(cache->index, path, new_entry);
+    hashtable_put(cache->index, new_entry->path, new_entry);
     cache->cur_size++;
 
     if (cache->cur_size > cache->max_size) {
-        printf("REMOVING FROM TAIL\n");
+        // printf("REMOVING FROM TAIL\n");
         struct cache_entry *tail = dllist_remove_tail(cache);
         hashtable_delete(cache->index, tail->path);
-        free_entry(tail);
+        // free_entry(tail);
 
         if (cache->cur_size > cache->max_size) {
             cache->cur_size--;        
@@ -184,12 +187,15 @@ struct cache_entry *cache_get(struct cache *cache, char *path)
     ///////////////////
     printf("GET CACHE\n");
     struct cache_entry *entry = hashtable_get(cache->index, path);
-    printf("%p\n", entry);
+    // printf("%p\n", entry);
     if (entry == NULL) {
         // free_entry(entry);
+        printf("file not in cache\n");
         return NULL;
     }
-
+    // printf("moved head to file location\n");
+    printf("%s\n", entry->path);
+    printf("CONTENT: %s\n", entry->content);
     dllist_move_to_head(cache, entry);
     return entry;
 }

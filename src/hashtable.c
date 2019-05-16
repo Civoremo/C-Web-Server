@@ -72,7 +72,7 @@ void add_entry_count(struct hashtable *ht, int d)
  */
 int default_hashf(void *data, int data_size, int bucket_count)
 {
-    printf("hashing\n");
+    // printf("hashing\n");
     const int R = 31; // Small prime
     int h = 0;
     unsigned char *p = data;
@@ -154,23 +154,14 @@ void *hashtable_put(struct hashtable *ht, char *key, void *data)
  */
 void *hashtable_put_bin(struct hashtable *ht, void *key, int key_size, void *data)
 {
-    printf("hashtable put main\n");
     int index = ht->hashf(key, key_size, ht->size);
-    printf("hashtable put 1\n");
     struct llist *llist = ht->bucket[index];
-    printf("hashtable put 2\n");
     struct htent *ent = malloc(sizeof *ent);
-    printf("hashtable put 3\n");
     ent->key = malloc(key_size);
-    printf("hashtable put 4\n");
     memcpy(ent->key, key, key_size);
-    printf("hashtable put 5\n");
     ent->key_size = key_size;
-    printf("hashtable put 6\n");
     ent->hashed_key = index;
-    printf("hashtable put 7\n");
     ent->data = data;
-    printf("hashtable put 8\n");
 
     if (llist_append(llist, ent) == NULL) {
         free(ent->key);

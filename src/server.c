@@ -61,7 +61,18 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
-    response_length = sprintf(response, "%s\nDate: %sContent-Type: %s\nContent-Length: %d\nConnection: close\n\n", header, asctime(localtime(&dt)), content_type, content_length);
+    printf("%d\n", content_length);
+    response_length = sprintf(response, 
+        "%s\n"
+        "Date: %s"
+        "Content-Type: %s\n"
+        "Content-Length: %d\n"
+        "Connection: close\n\n", 
+        header, 
+        asctime(localtime(&dt)), 
+        content_type, 
+        content_length
+    );
 
     memcpy(response + response_length, body, content_length);
     response_length += content_length;
@@ -142,10 +153,10 @@ void get_file(int fd, struct cache *cache, char *request_path)
     struct file_data *filedata;
     char *mime_type;
 
-    // struct cache_entry *entry = cache_get(cache, request_path);
+    struct cache_entry *entry = cache_get(cache, request_path);
+    printf("PATH: %s\n", request_path);
 
-    // if (cache_get(cache, request_path) == NULL) {
-
+    if (entry == NULL) {
         snprintf(filepath, sizeof filepath, "%s/%s", SERVER_ROOT, request_path);
         filedata = file_load(filepath);
 
@@ -155,12 +166,20 @@ void get_file(int fd, struct cache *cache, char *request_path)
             // file_free(filedata);
         } else {
             mime_type = mime_type_get(filepath);
+            cache_put(cache, request_path, mime_type, filedata->data, filedata->size);
             send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
             file_free(filedata);
         }
-    // } else {
-    //     printf("WE NEED SOMETHING\n");
-    // }
+    } else {
+        printf("WE NEED SOMETHING\n");
+        // struct cache_entry *entry = cache_get(cache, request_path);
+        printf("%s\n", entry->content_type);
+        printf("%d\n", entry->content_length);
+        printf("%s\n", entry->path);
+        printf("%s\n", entry->content);
+        send_response(fd, "HTTP/1.1 200 OK", entry->content_type, entry->content, entry->content_length);
+    }
+    // free_entry(entry);
 
 }
 
@@ -175,6 +194,7 @@ char *find_start_of_body(char *header)
     ///////////////////
     // IMPLEMENT ME! // (Stretch)
     ///////////////////
+    return NULL;
 }
 
 /**
