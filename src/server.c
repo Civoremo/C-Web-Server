@@ -61,7 +61,7 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
-    printf("%d\n", content_length);
+    // printf("%d\n", content_length);
     response_length = sprintf(response, 
         "%s\n"
         "Date: %s"
@@ -154,7 +154,7 @@ void get_file(int fd, struct cache *cache, char *request_path)
     char *mime_type;
 
     struct cache_entry *entry = cache_get(cache, request_path);
-    printf("PATH: %s\n", request_path);
+    // printf("PATH: %s\n", request_path);
 
     if (entry == NULL) {
         snprintf(filepath, sizeof filepath, "%s/%s", SERVER_ROOT, request_path);
@@ -168,18 +168,19 @@ void get_file(int fd, struct cache *cache, char *request_path)
             mime_type = mime_type_get(filepath);
             cache_put(cache, request_path, mime_type, filedata->data, filedata->size);
             send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
-            file_free(filedata);
+            // file_free(filedata);
         }
     } else {
-        printf("WE NEED SOMETHING\n");
+        // printf("WE NEED SOMETHING\n");
         // struct cache_entry *entry = cache_get(cache, request_path);
-        printf("%s\n", entry->content_type);
-        printf("%d\n", entry->content_length);
-        printf("%s\n", entry->path);
-        printf("%s\n", entry->content);
+        // printf("%s\n", entry->content_type);
+        // printf("%d\n", entry->content_length);
+        // printf("%s\n", entry->path);
+        // printf("%s\n", entry->content);
         send_response(fd, "HTTP/1.1 200 OK", entry->content_type, entry->content, entry->content_length);
     }
     // free_entry(entry);
+    // file_free(filedata);
 
 }
 

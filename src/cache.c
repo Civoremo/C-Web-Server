@@ -12,14 +12,15 @@ struct cache_entry *alloc_entry(char *path, char *content_type, void *content, i
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
-    printf("ALLOC ENTRY: %s\n", path);
-    printf("ENTRY: \n%s\n", content);
+    // printf("ALLOC ENTRY: %s\n", path);
+    // printf("ENTRY: \n%s\n", content);
     struct cache_entry *ce = malloc(sizeof (struct cache_entry));
 
-    ce->path = path;
+    ce->path = strdup(path);
     ce->content_length = content_length;
-    ce->content_type = content_type;
-    ce->content = content;
+    ce->content_type = strdup(content_type);
+    ce->content = malloc(content_length);
+    memcpy(ce->content, content, content_length);
     ce->next = NULL;
     ce->prev = NULL;
 
@@ -34,10 +35,10 @@ void free_entry(struct cache_entry *entry)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
-    // free(entry->path);
-    // free(entry->content);
+    free(entry->path);
+    free(entry->content);
     // free(entry->content_length);
-    // free(entry->content_type);
+    free(entry->content_type);
     free(entry);
 }
 
@@ -112,7 +113,7 @@ struct cache *cache_create(int max_size, int hashsize)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
-    printf("CREATE CACHE\n");
+    // printf("CREATE CACHE\n");
     struct cache *c = malloc(sizeof(struct cache));
 
     struct hashtable *ht = hashtable_create(hashsize, NULL);
@@ -156,10 +157,10 @@ void cache_put(struct cache *cache, char *path, char *content_type, void *conten
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
-    printf("PUT ENTRY\n");
+    // printf("PUT ENTRY\n");
     struct cache_entry *new_entry;
     new_entry = alloc_entry(path, content_type, content, content_length);
-    printf("PUT:\n%s\n %s\n %s\n %d\n", path, content_type, content, content_length);
+    // printf("PUT:\n%s\n %s\n %s\n %d\n", path, content_type, content, content_length);
 
     dllist_insert_head(cache, new_entry);
     hashtable_put(cache->index, new_entry->path, new_entry);
@@ -185,17 +186,17 @@ struct cache_entry *cache_get(struct cache *cache, char *path)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
-    printf("GET CACHE\n");
+    // printf("GET CACHE\n");
     struct cache_entry *entry = hashtable_get(cache->index, path);
     // printf("%p\n", entry);
     if (entry == NULL) {
         // free_entry(entry);
-        printf("file not in cache\n");
+        // printf("file not in cache\n");
         return NULL;
     }
     // printf("moved head to file location\n");
-    printf("%s\n", entry->path);
-    printf("CONTENT: %s\n", entry->content);
+    // printf("%s\n", entry->path);
+    // printf("CONTENT: %s\n", entry->content);
     dllist_move_to_head(cache, entry);
     return entry;
 }
